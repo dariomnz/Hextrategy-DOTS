@@ -12,11 +12,15 @@ using System.Collections.Generic;
 public partial struct RefreshHexCellSystem : ISystem
 {
     // public HexCellAspect.Lookup HexCellAspectFromEntity;
+    ComponentLookup<MaterialColor> MaterialColorLookUp;
+    ComponentLookup<HexCellTerrainData> HexCellTerrainDataLookUp;
 
     [BurstCompile]
     void OnCreate(ref SystemState state)
     {
         state.RequireForUpdate<HexCellRefresh>();
+        MaterialColorLookUp = state.GetComponentLookup<MaterialColor>(true);
+        HexCellTerrainDataLookUp = state.GetComponentLookup<HexCellTerrainData>(true);
     }
 
     [BurstCompile]
@@ -33,17 +37,15 @@ public partial struct RefreshHexCellSystem : ISystem
         HexGridAspect hexGrid = SystemAPI.GetAspect<HexGridAspect>(hexGridEntity);
         DynamicBuffer<HexTerrainColor> HexTerrainColorBuffer = SystemAPI.GetBuffer<HexTerrainColor>(hexGridEntity);
 
-
         // EntityCommandBuffer ECB = new EntityCommandBuffer(Allocator.Temp);
         EntityCommandBuffer.ParallelWriter ECB = SystemAPI.GetSingleton<BeginInitializationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter();
-        var aux = state.GetComponentLookup<MaterialColor>(true);
-
+        MaterialColorLookUp.Update(ref state);
+        HexCellTerrainDataLookUp.Update(ref state);
         var jobHandle = new HexCellRefreshJob
         {
             ECB = ECB,
-            MaterialColorLookUp = aux,
-            // EntityManager = state.EntityManager,
-            // hexGrid = hexGrid,
+            MaterialColorLookUp = MaterialColorLookUp,
+            HexCellTerrainDataLookUp = HexCellTerrainDataLookUp,
             HexTerrainColorBuffer = HexTerrainColorBuffer,
         };
 
@@ -56,6 +58,7 @@ public partial struct RefreshHexCellSystem : ISystem
     {
         public EntityCommandBuffer.ParallelWriter ECB;
         [ReadOnly] public ComponentLookup<MaterialColor> MaterialColorLookUp;
+        [ReadOnly] public ComponentLookup<HexCellTerrainData> HexCellTerrainDataLookUp;
         // [ReadOnly] public EntityManager EntityManager;
         // public HexGridAspect hexGrid;
         [ReadOnly] public DynamicBuffer<HexTerrainColor> HexTerrainColorBuffer;
@@ -66,18 +69,18 @@ public partial struct RefreshHexCellSystem : ISystem
         // public NativeArray<HexCoordinates> hexCoordinates;
 
         [BurstCompile]
-        public void Execute(Entity entity, HexCellAspect hexCell, HexCellRefresh hexCellRefresh, [ChunkIndexInQuery] int sortKey)
+        public void Execute(Entity entity, HexCellEntities hexCellEntitys, HexCellRefresh hexCellRefresh, [ChunkIndexInQuery] int sortKey)
         {
             ECB.SetComponentEnabled<HexCellRefresh>(sortKey, entity, false);
             // Debug.Log($"HasComponent {MaterialColorLookUp.HasComponent(entity)}");
             // ref DynamicBuffer<HexTerrainColor> aux = ref HexTerrainColorBuffer;
-            HexGridAspect.GetHexTerrainColor(ref HexTerrainColorBuffer, hexCell.HexTerrainType, out float4 outColor);
+            HexGridAspect.GetHexTerrainColor(ref HexTerrainColorBuffer, HexCellTerrainDataLookUp[hexCellEntitys.Data].TerrainType, out float4 outColor);
 
-            if (MaterialColorLookUp.HasComponent(entity))
-                ECB.SetComponent<MaterialColor>(sortKey, entity, new MaterialColor { Value = outColor });
+            if (MaterialColorLookUp.HasComponent(hexCellEntitys.Renderer))
+                ECB.SetComponent<MaterialColor>(sortKey, hexCellEntitys.Renderer, new MaterialColor { Value = outColor });
             else
-                ECB.AddComponent<MaterialColor>(sortKey, entity, new MaterialColor { Value = outColor });
-            Debug.Log($"Refreshing Entity: {entity} outColor:{outColor} sortKey:{sortKey}");
+                ECB.AddComponent<MaterialColor>(sortKey, hexCellEntitys.Renderer, new MaterialColor { Value = outColor });
+            // Debug.Log($"Refreshing Entity: {hexCellEntitys.Renderer} outColor:{outColor} sortKey:{sortKey}");
         }
     }
 }

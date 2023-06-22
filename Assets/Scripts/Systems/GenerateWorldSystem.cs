@@ -116,16 +116,9 @@ public partial struct GenerateWorldSystem : ISystem
                     ECB.AddComponent(newHexCell, new Parent { Value = chunk });
                     // LinkedEntityBuffer.Add(new LinkedEntityGroup { Value = newHexCell });
                     var newHexCoordinates = new HexCoordinates(x, z);
-                    ECB.AddComponent(newHexCell, newHexCoordinates);
+                    ECB.SetComponent(newHexCell, newHexCoordinates);
                     var newHexCellTransform = GetHexCellSpawnPoint(x, z);
                     ECB.SetComponent(newHexCell, newHexCellTransform);
-                    // ECB.AddComponent(newHexCell, new MaterialColor { Value = new float4(1, 0, 0, 1) });
-                    ECB.AddComponent<HexCellTerrainData>(newHexCell, new HexCellTerrainData
-                    {
-                        TerrainType = HexTerrainType.Grass,
-                        Elevation = 0
-                    });
-                    ECB.AddComponent<HexCellRefresh>(newHexCell);
                     i++;
                 }
             }
@@ -182,7 +175,7 @@ public partial struct GenerateWorldSystem : ISystem
 
             for (int i = 0; i < hexGrid.cellSize; i++)
             {
-                ECB.AddComponent(cells[i], new HexCellNeighborsEntity(tempNeighbourArray[i]));
+                ECB.SetComponent(cells[i], new HexCellNeighborsEntity(tempNeighbourArray[i]));
             }
 
         }

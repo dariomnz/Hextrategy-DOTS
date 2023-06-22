@@ -152,8 +152,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 243a0150e04d2244d977d6038ddf1b83, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  chunkSizeX: 2
-  chunkSizeZ: 2
+  chunkSizeX: 1
+  chunkSizeZ: 1
   HexCellPrefab: {fileID: 6564817374743635638, guid: 8592f14995a9bbf478dd343b4325e457,
     type: 3}
   HexChunkPrefab: {fileID: 9181602947697048319, guid: 619497ca79e77a94ea6b7514ea64542b,

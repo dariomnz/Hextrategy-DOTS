@@ -11,6 +11,13 @@ public partial struct HexCellTerrainData : IComponentData
     public int Elevation;
 }
 
+public struct HexCellEntities : IComponentData
+{
+    public Entity Renderer;
+    public Entity Collider;
+    public Entity Data;
+}
+
 public struct HexCellTag : IComponentData { }
 
 public struct HexCellRefresh : IComponentData, IEnableableComponent { }
